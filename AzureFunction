@@ -1,0 +1,24 @@
+# Variables
+APP_NAME=mywebapp$RANDOM
+PLAN_NAME=myAppServicePlan
+
+# Create App Service plan
+az appservice plan create \
+  --name $PLAN_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --location $LOCATION \
+  --sku B1
+
+# Create a Web App (App Service)
+az webapp create \
+  --name $APP_NAME \
+  --plan $PLAN_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --runtime "DOTNET:8"
+
+# Deploy a WebJob (zip file containing your script/exe)
+# Example: continuous WebJob
+az webapp deployment source config-zip \
+  --resource-group $RESOURCE_GROUP \
+  --name $APP_NAME \
+  --src mywebjob.zip
