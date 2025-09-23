@@ -1,0 +1,262 @@
+# Azure Web App CLI Commands Reference
+
+# 1. LOGIN AND SETUP
+# Login to Azure
+az login
+
+# Set subscription (replace with your subscription ID)
+az account set --subscription "your-subscription-id"
+
+# List available subscriptions
+az account list --output table
+
+# 2. RESOURCE GROUP OPERATIONS
+# Create a resource group
+az group create --name myResourceGroup --location "East US"
+
+# List resource groups
+az group list --output table
+
+# 3. APP SERVICE PLAN OPERATIONS
+# Create an App Service Plan (Free tier)
+az appservice plan create \
+  --name myAppServicePlan \
+  --resource-group myResourceGroup \
+  --sku FREE
+
+# Create an App Service Plan (Standard tier with scaling)
+az appservice plan create \
+  --name myAppServicePlan \
+  --resource-group myResourceGroup \
+  --sku S1 \
+  --number-of-workers 2
+
+# List App Service Plans
+az appservice plan list --output table
+
+# Show App Service Plan details
+az appservice plan show --name myAppServicePlan --resource-group myResourceGroup
+
+# Scale App Service Plan
+az appservice plan update \
+  --name myAppServicePlan \
+  --resource-group myResourceGroup \
+  --number-of-workers 3
+
+# 4. WEB APP CREATION
+# Create a web app with default settings
+az webapp create \
+  --resource-group myResourceGroup \
+  --plan myAppServicePlan \
+  --name myWebApp \
+  --runtime "NODE|18-lts"
+
+# Create a web app with specific runtime stack
+az webapp create \
+  --resource-group myResourceGroup \
+  --plan myAppServicePlan \
+  --name myWebApp \
+  --runtime "PYTHON|3.9"
+
+# Create a web app with deployment from GitHub
+az webapp create \
+  --resource-group myResourceGroup \
+  --plan myAppServicePlan \
+  --name myWebApp \
+  --runtime "NODE|18-lts" \
+  --deployment-source-url https://github.com/username/repo \
+  --deployment-source-branch main
+
+# 5. WEB APP MANAGEMENT
+# List all web apps
+az webapp list --output table
+
+# List web apps in a resource group
+az webapp list --resource-group myResourceGroup --output table
+
+# Show web app details
+az webapp show --name myWebApp --resource-group myResourceGroup
+
+# Start web app
+az webapp start --name myWebApp --resource-group myResourceGroup
+
+# Stop web app
+az webapp stop --name myWebApp --resource-group myResourceGroup
+
+# Restart web app
+az webapp restart --name myWebApp --resource-group myResourceGroup
+
+# Delete web app
+az webapp delete --name myWebApp --resource-group myResourceGroup
+
+# 6. CONFIGURATION MANAGEMENT
+# List application settings
+az webapp config appsettings list \
+  --name myWebApp \
+  --resource-group myResourceGroup
+
+# Set application settings
+az webapp config appsettings set \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --settings NODE_ENV=production DATABASE_URL="your-db-connection"
+
+# Delete application setting
+az webapp config appsettings delete \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --setting-names NODE_ENV
+
+# Set connection strings
+az webapp config connection-string set \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --connection-string-type SQLServer \
+  --settings DefaultConnection="Server=myserver;Database=mydb;User Id=myuser;Password=mypass;"
+
+# Configure runtime version
+az webapp config set \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --linux-fx-version "NODE|18-lts"
+
+# 7. DEPLOYMENT OPERATIONS
+# Deploy from local Git repository
+az webapp deployment source config-local-git \
+  --name myWebApp \
+  --resource-group myResourceGroup
+
+# Configure GitHub deployment
+az webapp deployment source config \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --repo-url https://github.com/username/repo \
+  --branch main \
+  --git-token your-github-token
+
+# Deploy ZIP file
+az webapp deployment source config-zip \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --src app.zip
+
+# 8. SCALING AND PERFORMANCE
+# Enable auto-scaling (requires Standard tier or higher)
+az monitor autoscale create \
+  --resource-group myResourceGroup \
+  --resource myWebApp \
+  --resource-type Microsoft.Web/sites \
+  --name myAutoscaleSettings \
+  --min-count 1 \
+  --max-count 5 \
+  --count 2
+
+# Create scale rule based on CPU
+az monitor autoscale rule create \
+  --resource-group myResourceGroup \
+  --autoscale-name myAutoscaleSettings \
+  --condition "Percentage CPU > 70 avg 5m" \
+  --scale out 1
+
+# 9. CUSTOM DOMAINS AND SSL
+# Add custom domain
+az webapp config hostname add \
+  --webapp-name myWebApp \
+  --resource-group myResourceGroup \
+  --hostname www.mydomain.com
+
+# Bind SSL certificate
+az webapp config ssl bind \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --certificate-thumbprint your-cert-thumbprint \
+  --ssl-type SNI
+
+# 10. MONITORING AND LOGS
+# Enable application logging
+az webapp log config \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --application-logging filesystem
+
+# Stream logs
+az webapp log tail \
+  --name myWebApp \
+  --resource-group myResourceGroup
+
+# Download logs
+az webapp log download \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --log-file webapp_logs.zip
+
+# 11. BACKUP AND RESTORE
+# Create backup
+az webapp config backup create \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --container-url "https://mystorageaccount.blob.core.windows.net/backups" \
+  --backup-name myBackup
+
+# List backups
+az webapp config backup list \
+  --name myWebApp \
+  --resource-group myResourceGroup
+
+# Restore from backup
+az webapp config backup restore \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --backup-name myBackup \
+  --container-url "https://mystorageaccount.blob.core.windows.net/backups"
+
+# 12. SLOT MANAGEMENT (for production deployments)
+# Create deployment slot
+az webapp deployment slot create \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --slot staging
+
+# Deploy to slot
+az webapp deployment source config \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --slot staging \
+  --repo-url https://github.com/username/repo \
+  --branch develop
+
+# Swap slots
+az webapp deployment slot swap \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --slot staging \
+  --target-slot production
+
+# 13. IDENTITY AND ACCESS
+# Enable system-assigned managed identity
+az webapp identity assign \
+  --name myWebApp \
+  --resource-group myResourceGroup
+
+# Show managed identity details
+az webapp identity show \
+  --name myWebApp \
+  --resource-group myResourceGroup
+
+# 14. USEFUL QUERIES AND FILTERS
+# List web apps with specific runtime
+az webapp list --query "[?siteConfig.linuxFxVersion=='NODE|18-lts']" --output table
+
+# Get web app URL
+az webapp show \
+  --name myWebApp \
+  --resource-group myResourceGroup \
+  --query "defaultHostName" \
+  --output tsv
+
+# List available runtime stacks
+az webapp list-runtimes --linux --output table
+
+# 15. CLEANUP
+# Delete resource group (deletes all resources within it)
+az group delete --name myResourceGroup --yes --no-wait
