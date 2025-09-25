@@ -1,0 +1,492 @@
+# Azure Container Registry (ACR) CLI Commands Reference
+
+# 1. LOGIN AND SETUP
+# Login to Azure
+az login
+
+# Set subscription (replace with your subscription ID)
+az account set --subscription "your-subscription-id"
+
+# List available subscriptions
+az account list --output table
+
+# 2. RESOURCE GROUP OPERATIONS
+# Create a resource group
+az group create --name myResourceGroup --location "East US"
+
+# List resource groups
+az group list --output table
+
+# 3. ACR CREATION
+# Create ACR with Basic SKU
+az acr create \
+  --name myContainerRegistry \
+  --resource-group myResourceGroup \
+  --sku Basic \
+  --location "East US"
+
+# Create ACR with Standard SKU
+az acr create \
+  --name myStandardRegistry \
+  --resource-group myResourceGroup \
+  --sku Standard \
+  --location "East US" \
+  --admin-enabled true
+
+# Create ACR with Premium SKU (supports geo-replication, webhooks, etc.)
+az acr create \
+  --name myPremiumRegistry \
+  --resource-group myResourceGroup \
+  --sku Premium \
+  --location "East US" \
+  --admin-enabled true
+
+# 4. ACR MANAGEMENT
+# List all ACRs
+az acr list --output table
+
+# List ACRs in a resource group
+az acr list --resource-group myResourceGroup --output table
+
+# Show ACR details
+az acr show --name myContainerRegistry --resource-group myResourceGroup
+
+# Update ACR
+az acr update \
+  --name myContainerRegistry \
+  --admin-enabled true \
+  --sku Standard
+
+# Delete ACR
+az acr delete --name myContainerRegistry --resource-group myResourceGroup --yes
+
+# 5. AUTHENTICATION AND LOGIN
+# Login to ACR using Azure AD
+az acr login --name myContainerRegistry
+
+# Get ACR login server
+az acr show --name myContainerRegistry --query loginServer --output tsv
+
+# Get admin credentials
+az acr credential show --name myContainerRegistry --resource-group myResourceGroup
+
+# Renew admin password
+az acr credential renew --name myContainerRegistry --password-name password
+
+# 6. IMAGE OPERATIONS
+# Build and push image from Dockerfile
+az acr build \
+  --registry myContainerRegistry \
+  --image myapp:v1 \
+  --file Dockerfile .
+
+# Build with custom build arguments
+az acr build \
+  --registry myContainerRegistry \
+  --image myapp:v2 \
+  --file Dockerfile \
+  --build-arg BUILD_VERSION=2.0 .
+
+# Import image from Docker Hub
+az acr import \
+  --name myContainerRegistry \
+  --source docker.io/library/nginx:latest \
+  --image nginx:latest
+
+# Import image from another registry
+az acr import \
+  --name myContainerRegistry \
+  --source mcr.microsoft.com/dotnet/core/aspnet:3.1 \
+  --image aspnet:3.1
+
+# List repositories
+az acr repository list --name myContainerRegistry --output table
+
+# List tags for a repository
+az acr repository show-tags --name myContainerRegistry --repository myapp --output table
+
+# Show repository details
+az acr repository show --name myContainerRegistry --repository myapp
+
+# Delete repository
+az acr repository delete --name myContainerRegistry --repository myapp --yes
+
+# Delete specific tag
+az acr repository delete --name myContainerRegistry --image myapp:v1 --yes
+
+# 7. HELM CHARTS OPERATIONS
+# Add Helm chart to ACR
+az acr helm push mychart-1.0.0.tgz --name myContainerRegistry
+
+# List Helm charts
+az acr helm list --name myContainerRegistry
+
+# Show Helm chart details
+az acr helm show mychart --name myContainerRegistry --version 1.0.0
+
+# Delete Helm chart
+az acr helm delete mychart --version 1.0.0 --name myContainerRegistry --yes
+
+# 8. TASKS OPERATIONS
+# Create a task that builds on every commit
+az acr task create \
+  --registry myContainerRegistry \
+  --name buildTask \
+  --image myapp:{{.Run.ID}} \
+  --context https://github.com/username/myapp.git \
+  --file Dockerfile \
+  --git-access-token <git-access-token>
+
+# Run a task manually
+az acr task run --registry myContainerRegistry --name buildTask
+
+# List tasks
+az acr task list --registry myContainerRegistry --output table
+
+# Show task details
+az acr task show --registry myContainerRegistry --name buildTask
+
+# Update task
+az acr task update \
+  --registry myContainerRegistry \
+  --name buildTask \
+  --image myapp:{{.Run.ID}}-updated
+
+# Delete task
+az acr task delete --registry myContainerRegistry --name buildTask --yes
+
+# List task runs
+az acr task list-runs --registry myContainerRegistry --output table
+
+# Show task run logs
+az acr task logs --registry myContainerRegistry --run-id <run-id>
+
+# 9. REPLICATION (Premium SKU only)
+# Create replication in another region
+az acr replication create \
+  --registry myPremiumRegistry \
+  --location "West US"
+
+# List replications
+az acr replication list --registry myPremiumRegistry --output table
+
+# Show replication details
+az acr replication show --registry myPremiumRegistry --location "West US"
+
+# Delete replication
+az acr replication delete --registry myPremiumRegistry --location "West US"
+
+# 10. WEBHOOKS
+# Create webhook
+az acr webhook create \
+  --registry myContainerRegistry \
+  --name myWebhook \
+  --uri https://mywebhookhandler.com/webhook \
+  --actions push delete
+
+# List webhooks
+az acr webhook list --registry myContainerRegistry --output table
+
+# Show webhook details
+az acr webhook show --registry myContainerRegistry --name myWebhook
+
+# Update webhook
+az acr webhook update \
+  --registry myContainerRegistry \
+  --name myWebhook \
+  --actions push
+
+# Test webhook
+az acr webhook ping --registry myContainerRegistry --name myWebhook
+
+# Get webhook events
+az acr webhook list-events --registry myContainerRegistry --name myWebhook
+
+# Delete webhook
+az acr webhook delete --registry myContainerRegistry --name myWebhook --yes
+
+# 11. NETWORK ACCESS AND SECURITY
+# Update network access rules (Premium SKU)
+az acr update \
+  --name myPremiumRegistry \
+  --default-action Deny
+
+# Add IP rule
+az acr network-rule add \
+  --name myPremiumRegistry \
+  --ip-address 203.0.113.1
+
+# Add virtual network rule
+az acr network-rule add \
+  --name myPremiumRegistry \
+  --vnet-name myVNet \
+  --subnet mySubnet
+
+# List network rules
+az acr network-rule list --name myPremiumRegistry
+
+# Remove IP rule
+az acr network-rule remove \
+  --name myPremiumRegistry \
+  --ip-address 203.0.113.1
+
+# 12. CONTENT TRUST (Premium SKU)
+# Enable content trust
+az acr config content-trust update --registry myPremiumRegistry --status enabled
+
+# Show content trust status
+az acr config content-trust show --registry myPremiumRegistry
+
+# 13. MONITORING AND DIAGNOSTICS
+# Enable diagnostic settings
+az monitor diagnostic-settings create \
+  --name myACRDiagnostics \
+  --resource /subscriptions/subscription-id/resourceGroups/myResourceGroup/providers/Microsoft.ContainerRegistry/registries/myContainerRegistry \
+  --storage-account mystorageaccount \
+  --logs '[{"category": "ContainerRegistryRepositoryEvents", "enabled": true}, {"category": "ContainerRegistryLoginEvents", "enabled": true}]'
+
+# Get ACR usage
+az acr show-usage --name myContainerRegistry --output table
+
+# 14. USEFUL QUERIES AND FILTERS
+# Get ACR login server URL
+az acr show --name myContainerRegistry --query loginServer --output tsv
+
+# List repositories with tag counts
+az acr repository list --name myContainerRegistry --output table
+
+# Get image manifest
+az acr repository show-manifests --name myContainerRegistry --repository myapp --output table
+
+# List images by creation date
+az acr repository show-tags \
+  --name myContainerRegistry \
+  --repository myapp \
+  --orderby time_desc \
+  --output table
+
+# 15. CLEANUP
+# Delete ACR
+az acr delete --name myContainerRegistry --resource-group myResourceGroup --yes
+
+# Delete resource group (deletes all resources within it)
+az group delete --name myResourceGroup --yes --no-wait
+
+# PowerShell Commands for Azure Container Registry
+
+# 1. LOGIN AND SETUP
+# Connect to Azure
+Connect-AzAccount
+
+# Set subscription context
+Set-AzContext -SubscriptionId "your-subscription-id"
+
+# Get available subscriptions
+Get-AzSubscription
+
+# 2. RESOURCE GROUP OPERATIONS
+# Create resource group
+New-AzResourceGroup -Name "myResourceGroup" -Location "East US"
+
+# Get resource groups
+Get-AzResourceGroup
+
+# 3. ACR CREATION
+# Create ACR with Basic SKU
+New-AzContainerRegistry -Name "myContainerRegistry" `
+  -ResourceGroupName "myResourceGroup" `
+  -Location "East US" `
+  -Sku "Basic"
+
+# Create ACR with Premium SKU
+New-AzContainerRegistry -Name "myPremiumRegistry" `
+  -ResourceGroupName "myResourceGroup" `
+  -Location "East US" `
+  -Sku "Premium" `
+  -EnableAdminUser
+
+# 4. ACR MANAGEMENT
+# Get all ACRs
+Get-AzContainerRegistry
+
+# Get ACR by name
+Get-AzContainerRegistry -ResourceGroupName "myResourceGroup" -Name "myContainerRegistry"
+
+# Update ACR
+Update-AzContainerRegistry -ResourceGroupName "myResourceGroup" `
+  -Name "myContainerRegistry" `
+  -EnableAdminUser `
+  -Sku "Standard"
+
+# Remove ACR
+Remove-AzContainerRegistry -ResourceGroupName "myResourceGroup" -Name "myContainerRegistry" -Force
+
+# 5. AUTHENTICATION
+# Get ACR credentials
+Get-AzContainerRegistryCredential -ResourceGroupName "myResourceGroup" -Name "myContainerRegistry"
+
+# Update ACR credentials
+Update-AzContainerRegistryCredential -ResourceGroupName "myResourceGroup" `
+  -Name "myContainerRegistry" `
+  -PasswordName "Password"
+
+# 6. REPLICATION (Premium SKU only)
+# Create replication
+New-AzContainerRegistryReplication -ResourceGroupName "myResourceGroup" `
+  -RegistryName "myPremiumRegistry" `
+  -Location "West US"
+
+# Get replications
+Get-AzContainerRegistryReplication -ResourceGroupName "myResourceGroup" -RegistryName "myPremiumRegistry"
+
+# Remove replication
+Remove-AzContainerRegistryReplication -ResourceGroupName "myResourceGroup" `
+  -RegistryName "myPremiumRegistry" `
+  -Location "West US" `
+  -Force
+
+# 7. WEBHOOKS
+# Create webhook
+New-AzContainerRegistryWebhook -ResourceGroupName "myResourceGroup" `
+  -RegistryName "myContainerRegistry" `
+  -Name "myWebhook" `
+  -ServiceUri "https://mywebhookhandler.com/webhook" `
+  -Action "push","delete"
+
+# Get webhooks
+Get-AzContainerRegistryWebhook -ResourceGroupName "myResourceGroup" -RegistryName "myContainerRegistry"
+
+# Test webhook
+Test-AzContainerRegistryWebhook -ResourceGroupName "myResourceGroup" `
+  -RegistryName "myContainerRegistry" `
+  -Name "myWebhook"
+
+# Remove webhook
+Remove-AzContainerRegistryWebhook -ResourceGroupName "myResourceGroup" `
+  -RegistryName "myContainerRegistry" `
+  -Name "myWebhook" `
+  -Force
+
+# 8. USEFUL POWERSHELL QUERIES
+# Get ACR login server
+$registry = Get-AzContainerRegistry -ResourceGroupName "myResourceGroup" -Name "myContainerRegistry"
+$registry.LoginServer
+
+# Get ACR resource ID
+$registry.Id
+
+# Bash Scripts for Azure Container Registry
+
+#!/bin/bash
+
+# 1. LOGIN AND SETUP
+echo "Logging into Azure..."
+az login
+echo "Setting subscription..."
+az account set --subscription "your-subscription-id"
+
+# 2. VARIABLES
+RESOURCE_GROUP="myResourceGroup"
+LOCATION="East US"
+ACR_NAME="mycontainerregistry"
+IMAGE_NAME="myapp"
+IMAGE_TAG="v1.0"
+
+# 3. CREATE RESOURCE GROUP
+echo "Creating resource group..."
+az group create --name $RESOURCE_GROUP --location "$LOCATION"
+
+# 4. CREATE ACR
+echo "Creating Azure Container Registry..."
+az acr create \
+  --name $ACR_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --sku Standard \
+  --location "$LOCATION" \
+  --admin-enabled true
+
+# 5. WAIT FOR ACR
+echo "Waiting for ACR to be ready..."
+sleep 60
+
+# 6. LOGIN TO ACR
+echo "Logging into ACR..."
+az acr login --name $ACR_NAME
+
+# 7. GET ACR LOGIN SERVER
+ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer --output tsv)
+echo "ACR Login Server: $ACR_LOGIN_SERVER"
+
+# 8. BUILD AND PUSH SAMPLE IMAGE (if Dockerfile exists)
+if [ -f "Dockerfile" ]; then
+    echo "Building and pushing image to ACR..."
+    az acr build \
+      --registry $ACR_NAME \
+      --image $IMAGE_NAME:$IMAGE_TAG \
+      --file Dockerfile .
+    
+    echo "Image built and pushed successfully!"
+else
+    echo "No Dockerfile found, importing sample image from Docker Hub..."
+    az acr import \
+      --name $ACR_NAME \
+      --source docker.io/library/hello-world:latest \
+      --image hello-world:latest
+fi
+
+# 9. LIST REPOSITORIES
+echo "Listing repositories in ACR:"
+az acr repository list --name $ACR_NAME --output table
+
+# 10. CREATE A SIMPLE WEBHOOK
+echo "Creating webhook..."
+az acr webhook create \
+  --registry $ACR_NAME \
+  --name mywebhook \
+  --uri https://httpbin.org/post \
+  --actions push delete
+
+# 11. CREATE A BUILD TASK (if Git repo is available)
+if [ ! -z "$GIT_REPO_URL" ] && [ ! -z "$GIT_ACCESS_TOKEN" ]; then
+    echo "Creating build task..."
+    az acr task create \
+      --registry $ACR_NAME \
+      --name buildTask \
+      --image $IMAGE_NAME:{{.Run.ID}} \
+      --context $GIT_REPO_URL \
+      --file Dockerfile \
+      --git-access-token $GIT_ACCESS_TOKEN
+fi
+
+# 12. GET ACR CREDENTIALS
+echo "Getting ACR credentials..."
+az acr credential show --name $ACR_NAME --resource-group $RESOURCE_GROUP
+
+# 13. SHOW ACR USAGE
+echo "ACR Usage:"
+az acr show-usage --name $ACR_NAME --output table
+
+# 14. LIST WEBHOOKS
+echo "Listing webhooks:"
+az acr webhook list --registry $ACR_NAME --output table
+
+echo "ACR setup completed!"
+echo "Login Server: $ACR_LOGIN_SERVER"
+echo "You can now push images to: $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG"
+
+# Example Docker commands to use with this ACR:
+echo ""
+echo "Example Docker commands:"
+echo "docker tag myapp:latest $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG"
+echo "docker push $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG"
+echo "docker pull $ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG"
+
+# Function to clean up resources
+cleanup_resources() {
+    echo "Cleaning up resources..."
+    az group delete --name $RESOURCE_GROUP --yes --no-wait
+    echo "Cleanup initiated..."
+}
+
+# Uncomment the line below to clean up resources
+# cleanup_resources

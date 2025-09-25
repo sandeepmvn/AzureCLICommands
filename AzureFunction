@@ -1,1 +1,460 @@
+# Azure Function CLI Commands Reference
 
+# 1. LOGIN AND SETUP
+# Login to Azure
+az login
+
+# Set subscription (replace with your subscription ID)
+az account set --subscription "your-subscription-id"
+
+# List available subscriptions
+az account list --output table
+
+# 2. RESOURCE GROUP OPERATIONS
+# Create a resource group
+az group create --name myResourceGroup --location "East US"
+
+# List resource groups
+az group list --output table
+
+# 3. STORAGE ACCOUNT FOR FUNCTION APP
+# Create storage account (required for Azure Functions)
+az storage account create \
+  --name mystorageaccount \
+  --resource-group myResourceGroup \
+  --location "East US" \
+  --sku Standard_LRS
+
+# 4. FUNCTION APP CREATION
+# Create Function App with consumption plan
+az functionapp create \
+  --resource-group myResourceGroup \
+  --consumption-plan-location "East US" \
+  --runtime node \
+  --runtime-version 18 \
+  --functions-version 4 \
+  --name myFunctionApp \
+  --storage-account mystorageaccount
+
+# Create Function App with Premium plan
+az functionapp plan create \
+  --resource-group myResourceGroup \
+  --name myPremiumPlan \
+  --location "East US" \
+  --sku EP1
+
+az functionapp create \
+  --resource-group myResourceGroup \
+  --plan myPremiumPlan \
+  --runtime python \
+  --runtime-version 3.9 \
+  --functions-version 4 \
+  --name myPremiumFunctionApp \
+  --storage-account mystorageaccount
+
+# Create Function App with dedicated App Service Plan
+az appservice plan create \
+  --name myAppServicePlan \
+  --resource-group myResourceGroup \
+  --sku S1
+
+az functionapp create \
+  --resource-group myResourceGroup \
+  --plan myAppServicePlan \
+  --runtime dotnet \
+  --functions-version 4 \
+  --name myDedicatedFunctionApp \
+  --storage-account mystorageaccount
+
+# 5. FUNCTION APP MANAGEMENT
+# List all function apps
+az functionapp list --output table
+
+# List function apps in a resource group
+az functionapp list --resource-group myResourceGroup --output table
+
+# Show function app details
+az functionapp show --name myFunctionApp --resource-group myResourceGroup
+
+# Start function app
+az functionapp start --name myFunctionApp --resource-group myResourceGroup
+
+# Stop function app
+az functionapp stop --name myFunctionApp --resource-group myResourceGroup
+
+# Restart function app
+az functionapp restart --name myFunctionApp --resource-group myResourceGroup
+
+# Delete function app
+az functionapp delete --name myFunctionApp --resource-group myResourceGroup
+
+# 6. FUNCTION MANAGEMENT
+# List functions in a function app
+az functionapp function list --name myFunctionApp --resource-group myResourceGroup
+
+# Show function details
+az functionapp function show \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --function-name myFunction
+
+# Delete a function
+az functionapp function delete \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --function-name myFunction
+
+# 7. CONFIGURATION MANAGEMENT
+# List application settings
+az functionapp config appsettings list \
+  --name myFunctionApp \
+  --resource-group myResourceGroup
+
+# Set application settings
+az functionapp config appsettings set \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --settings CUSTOM_SETTING=value DATABASE_URL="your-connection-string"
+
+# Delete application setting
+az functionapp config appsettings delete \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --setting-names CUSTOM_SETTING
+
+# Set connection strings
+az functionapp config connection-string set \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --connection-string-type SQLServer \
+  --settings DefaultConnection="Server=myserver;Database=mydb;User Id=myuser;Password=mypass;"
+
+# Configure CORS
+az functionapp cors add \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --allowed-origins https://mydomain.com
+
+# 8. DEPLOYMENT OPERATIONS
+# Deploy from ZIP file
+az functionapp deployment source config-zip \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --src function-app.zip
+
+# Configure GitHub deployment
+az functionapp deployment source config \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --repo-url https://github.com/username/azure-function-repo \
+  --branch main \
+  --git-token your-github-token
+
+# Deploy from local Git
+az functionapp deployment source config-local-git \
+  --name myFunctionApp \
+  --resource-group myResourceGroup
+
+# 9. SCALING AND PERFORMANCE
+# Update function app plan (for dedicated plans)
+az functionapp plan update \
+  --name myAppServicePlan \
+  --resource-group myResourceGroup \
+  --number-of-workers 2
+
+# Configure scale settings for Premium plan
+az functionapp config set \
+  --name myPremiumFunctionApp \
+  --resource-group myResourceGroup \
+  --prewarmed-instance-count 2
+
+# 10. MONITORING AND LOGS
+# Enable Application Insights
+az monitor app-insights component create \
+  --app myFunctionAppInsights \
+  --location "East US" \
+  --resource-group myResourceGroup
+
+# Link Application Insights to Function App
+az functionapp config appsettings set \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --settings APPINSIGHTS_INSTRUMENTATIONKEY="your-instrumentation-key"
+
+# Stream logs
+az functionapp log tail \
+  --name myFunctionApp \
+  --resource-group myResourceGroup
+
+# Download logs
+az functionapp log download \
+  --name myFunctionApp \
+  --resource-group myResourceGroup
+
+# 11. IDENTITY AND ACCESS
+# Enable system-assigned managed identity
+az functionapp identity assign \
+  --name myFunctionApp \
+  --resource-group myResourceGroup
+
+# Enable user-assigned managed identity
+az functionapp identity assign \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --identities /subscriptions/subscription-id/resourcegroups/myResourceGroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/myIdentity
+
+# Show managed identity details
+az functionapp identity show \
+  --name myFunctionApp \
+  --resource-group myResourceGroup
+
+# 12. CUSTOM DOMAINS AND SSL
+# Add custom domain
+az functionapp config hostname add \
+  --webapp-name myFunctionApp \
+  --resource-group myResourceGroup \
+  --hostname api.mydomain.com
+
+# Bind SSL certificate
+az functionapp config ssl bind \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --certificate-thumbprint your-cert-thumbprint \
+  --ssl-type SNI
+
+# 13. FUNCTION KEYS AND ACCESS
+# List function keys
+az functionapp keys list \
+  --name myFunctionApp \
+  --resource-group myResourceGroup
+
+# Get function key
+az functionapp function keys list \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --function-name myFunction
+
+# Set function key
+az functionapp function keys set \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --function-name myFunction \
+  --key-name myKey \
+  --key-value myKeyValue
+
+# 14. RUNTIME CONFIGURATION
+# Update runtime version
+az functionapp config set \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --linux-fx-version "Node|18"
+
+# List available runtime stacks
+az functionapp list-consumption-locations --output table
+
+# 15. USEFUL QUERIES AND FILTERS
+# List function apps with specific runtime
+az functionapp list --query "[?kind=='functionapp']" --output table
+
+# Get function app URL
+az functionapp show \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --query "defaultHostName" \
+  --output tsv
+
+# List functions with their trigger types
+az functionapp function list \
+  --name myFunctionApp \
+  --resource-group myResourceGroup \
+  --query "[].{Name:name, TriggerType:config.bindings[0].type}" \
+  --output table
+
+# 16. CLEANUP
+# Delete function app
+az functionapp delete --name myFunctionApp --resource-group myResourceGroup --yes
+
+# Delete resource group (deletes all resources within it)
+az group delete --name myResourceGroup --yes --no-wait
+
+# PowerShell Commands for Azure Functions
+
+# 1. LOGIN AND SETUP
+# Connect to Azure
+Connect-AzAccount
+
+# Set subscription context
+Set-AzContext -SubscriptionId "your-subscription-id"
+
+# Get available subscriptions
+Get-AzSubscription
+
+# 2. RESOURCE GROUP OPERATIONS
+# Create resource group
+New-AzResourceGroup -Name "myResourceGroup" -Location "East US"
+
+# Get resource groups
+Get-AzResourceGroup
+
+# 3. STORAGE ACCOUNT FOR FUNCTION APP
+# Create storage account
+New-AzStorageAccount -Name "mystorageaccount" `
+  -ResourceGroupName "myResourceGroup" `
+  -Location "East US" `
+  -SkuName "Standard_LRS"
+
+# 4. FUNCTION APP CREATION
+# Create Function App with consumption plan
+New-AzFunctionApp -Name "myFunctionApp" `
+  -ResourceGroupName "myResourceGroup" `
+  -StorageAccount "mystorageaccount" `
+  -Location "East US" `
+  -Runtime "Node" `
+  -RuntimeVersion "18" `
+  -FunctionsVersion "4"
+
+# Create App Service Plan for Function App
+New-AzAppServicePlan -Name "myAppServicePlan" `
+  -ResourceGroupName "myResourceGroup" `
+  -Location "East US" `
+  -Tier "Standard" `
+  -NumberofWorkers 1 `
+  -WorkerSize "Small"
+
+# Create Function App with dedicated plan
+New-AzFunctionApp -Name "myDedicatedFunctionApp" `
+  -ResourceGroupName "myResourceGroup" `
+  -PlanName "myAppServicePlan" `
+  -StorageAccount "mystorageaccount" `
+  -Runtime "PowerShell" `
+  -FunctionsVersion "4"
+
+# 5. FUNCTION APP MANAGEMENT
+# Get all function apps
+Get-AzFunctionApp
+
+# Get function app by name
+Get-AzFunctionApp -Name "myFunctionApp" -ResourceGroupName "myResourceGroup"
+
+# Start function app
+Start-AzFunctionApp -Name "myFunctionApp" -ResourceGroupName "myResourceGroup"
+
+# Stop function app
+Stop-AzFunctionApp -Name "myFunctionApp" -ResourceGroupName "myResourceGroup"
+
+# Restart function app
+Restart-AzFunctionApp -Name "myFunctionApp" -ResourceGroupName "myResourceGroup"
+
+# Remove function app
+Remove-AzFunctionApp -Name "myFunctionApp" -ResourceGroupName "myResourceGroup" -Force
+
+# 6. CONFIGURATION MANAGEMENT
+# Get app settings
+$functionApp = Get-AzFunctionApp -Name "myFunctionApp" -ResourceGroupName "myResourceGroup"
+$functionApp.SiteConfig.AppSettings
+
+# Update app settings
+Update-AzFunctionAppSetting -Name "myFunctionApp" `
+  -ResourceGroupName "myResourceGroup" `
+  -AppSetting @{"CUSTOM_SETTING"="value"; "DATABASE_URL"="connection-string"}
+
+# 7. IDENTITY AND ACCESS
+# Enable system-assigned managed identity
+$functionApp = Get-AzFunctionApp -Name "myFunctionApp" -ResourceGroupName "myResourceGroup"
+Set-AzWebApp -ResourceGroupName "myResourceGroup" -Name "myFunctionApp" -AssignIdentity $true
+
+# Get managed identity details
+$identity = (Get-AzWebApp -ResourceGroupName "myResourceGroup" -Name "myFunctionApp").Identity
+
+# 8. USEFUL POWERSHELL QUERIES
+# Get function app URL
+$functionApp = Get-AzFunctionApp -Name "myFunctionApp" -ResourceGroupName "myResourceGroup"
+$functionApp.DefaultHostName
+
+# List function apps in resource group
+Get-AzFunctionApp -ResourceGroupName "myResourceGroup"
+
+# Bash Scripts for Azure Functions
+
+#!/bin/bash
+
+# 1. LOGIN AND SETUP
+echo "Logging into Azure..."
+az login
+echo "Setting subscription..."
+az account set --subscription "your-subscription-id"
+
+# 2. VARIABLES
+RESOURCE_GROUP="myResourceGroup"
+LOCATION="East US"
+STORAGE_ACCOUNT="mystorageaccount"
+FUNCTION_APP="myFunctionApp"
+
+# 3. CREATE RESOURCE GROUP
+echo "Creating resource group..."
+az group create --name $RESOURCE_GROUP --location "$LOCATION"
+
+# 4. CREATE STORAGE ACCOUNT
+echo "Creating storage account..."
+az storage account create \
+  --name $STORAGE_ACCOUNT \
+  --resource-group $RESOURCE_GROUP \
+  --location "$LOCATION" \
+  --sku Standard_LRS
+
+# 5. CREATE FUNCTION APP
+echo "Creating function app..."
+az functionapp create \
+  --resource-group $RESOURCE_GROUP \
+  --consumption-plan-location "$LOCATION" \
+  --runtime node \
+  --runtime-version 18 \
+  --functions-version 4 \
+  --name $FUNCTION_APP \
+  --storage-account $STORAGE_ACCOUNT
+
+# 6. WAIT FOR DEPLOYMENT
+echo "Waiting for function app to be ready..."
+sleep 60
+
+# 7. SET APPLICATION SETTINGS
+echo "Setting application settings..."
+az functionapp config appsettings set \
+  --name $FUNCTION_APP \
+  --resource-group $RESOURCE_GROUP \
+  --settings NODE_ENV=production CUSTOM_SETTING=value
+
+# 8. ENABLE MANAGED IDENTITY
+echo "Enabling managed identity..."
+az functionapp identity assign \
+  --name $FUNCTION_APP \
+  --resource-group $RESOURCE_GROUP
+
+# 9. DEPLOY FUNCTION (if ZIP file exists)
+if [ -f "function-app.zip" ]; then
+    echo "Deploying function app..."
+    az functionapp deployment source config-zip \
+      --name $FUNCTION_APP \
+      --resource-group $RESOURCE_GROUP \
+      --src function-app.zip
+fi
+
+# 10. GET FUNCTION APP URL
+echo "Function App URL:"
+az functionapp show \
+  --name $FUNCTION_APP \
+  --resource-group $RESOURCE_GROUP \
+  --query "defaultHostName" \
+  --output tsv
+
+echo "Function App deployment completed!"
+
+# Function to clean up resources
+cleanup_resources() {
+    echo "Cleaning up resources..."
+    az group delete --name $RESOURCE_GROUP --yes --no-wait
+    echo "Cleanup initiated..."
+}
+
+# Uncomment the line below to clean up resources
+# cleanup_resources
