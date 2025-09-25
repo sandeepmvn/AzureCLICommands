@@ -1,0 +1,569 @@
+# Azure Key Vault CLI Commands Reference
+
+# 1. LOGIN AND SETUP
+# Login to Azure
+az login
+
+# Set subscription (replace with your subscription ID)
+az account set --subscription "your-subscription-id"
+
+# List available subscriptions
+az account list --output table
+
+# 2. RESOURCE GROUP OPERATIONS
+# Create a resource group
+az group create --name myResourceGroup --location "East US"
+
+# List resource groups
+az group list --output table
+
+# 3. KEY VAULT CREATION
+# Create Key Vault with basic settings
+az keyvault create \
+  --name myKeyVault \
+  --resource-group myResourceGroup \
+  --location "East US"
+
+# Create Key Vault with advanced settings
+az keyvault create \
+  --name myPremiumKeyVault \
+  --resource-group myResourceGroup \
+  --location "East US" \
+  --sku premium \
+  --enabled-for-deployment true \
+  --enabled-for-disk-encryption true \
+  --enabled-for-template-deployment true \
+  --enable-soft-delete true \
+  --soft-delete-retention-days 90 \
+  --enable-purge-protection true
+
+# Create Key Vault with network restrictions
+az keyvault create \
+  --name mySecureKeyVault \
+  --resource-group myResourceGroup \
+  --location "East US" \
+  --default-action Deny \
+  --bypass AzureServices
+
+# 4. KEY VAULT MANAGEMENT
+# List all key vaults
+az keyvault list --output table
+
+# List key vaults in a resource group
+az keyvault list --resource-group myResourceGroup --output table
+
+# Show key vault details
+az keyvault show --name myKeyVault --resource-group myResourceGroup
+
+# Update key vault
+az keyvault update \
+  --name myKeyVault \
+  --resource-group myResourceGroup \
+  --enabled-for-deployment true \
+  --enabled-for-disk-encryption true
+
+# Delete key vault
+az keyvault delete --name myKeyVault --resource-group myResourceGroup
+
+# Purge deleted key vault (permanent deletion)
+az keyvault purge --name myKeyVault --location "East US"
+
+# Recover deleted key vault
+az keyvault recover --name myKeyVault --resource-group myResourceGroup --location "East US"
+
+# 5. ACCESS POLICY MANAGEMENT
+# Set access policy for a user
+az keyvault set-policy \
+  --name myKeyVault \
+  --upn user@example.com \
+  --secret-permissions get list set delete backup restore recover purge \
+  --key-permissions get list create delete backup restore recover purge \
+  --certificate-permissions get list create delete managecontacts getissuers listissuers setissuers deleteissuers manageissuers
+
+# Set access policy for a service principal
+az keyvault set-policy \
+  --name myKeyVault \
+  --spn http://myapp \
+  --secret-permissions get list \
+  --key-permissions get list
+
+# Set access policy for a managed identity
+az keyvault set-policy \
+  --name myKeyVault \
+  --object-id "managed-identity-object-id" \
+  --secret-permissions get list
+
+# Delete access policy
+az keyvault delete-policy \
+  --name myKeyVault \
+  --upn user@example.com
+
+# 6. SECRET MANAGEMENT
+# Create secret
+az keyvault secret set \
+  --vault-name myKeyVault \
+  --name mySecret \
+  --value "MySecretValue"
+
+# Create secret with expiration
+az keyvault secret set \
+  --vault-name myKeyVault \
+  --name myExpiringSecret \
+  --value "MySecretValue" \
+  --expires "2024-12-31T23:59:59Z"
+
+# List secrets
+az keyvault secret list --vault-name myKeyVault --output table
+
+# Get secret value
+az keyvault secret show --vault-name myKeyVault --name mySecret --query value --output tsv
+
+# Update secret
+az keyvault secret set \
+  --vault-name myKeyVault \
+  --name mySecret \
+  --value "UpdatedSecretValue"
+
+# Delete secret
+az keyvault secret delete --vault-name myKeyVault --name mySecret
+
+# Recover deleted secret
+az keyvault secret recover --vault-name myKeyVault --name mySecret
+
+# Purge deleted secret
+az keyvault secret purge --vault-name myKeyVault --name mySecret
+
+# Backup secret
+az keyvault secret backup --vault-name myKeyVault --name mySecret --file secret-backup.json
+
+# Restore secret
+az keyvault secret restore --vault-name myKeyVault --file secret-backup.json
+
+# 7. KEY MANAGEMENT
+# Create RSA key
+az keyvault key create \
+  --vault-name myKeyVault \
+  --name myRSAKey \
+  --kty RSA \
+  --size 2048
+
+# Create EC key
+az keyvault key create \
+  --vault-name myKeyVault \
+  --name myECKey \
+  --kty EC \
+  --curve P-256
+
+# Import key from file
+az keyvault key import \
+  --vault-name myKeyVault \
+  --name myImportedKey \
+  --pem-file key.pem
+
+# List keys
+az keyvault key list --vault-name myKeyVault --output table
+
+# Show key details
+az keyvault key show --vault-name myKeyVault --name myRSAKey
+
+# Delete key
+az keyvault key delete --vault-name myKeyVault --name myRSAKey
+
+# Recover deleted key
+az keyvault key recover --vault-name myKeyVault --name myRSAKey
+
+# Purge deleted key
+az keyvault key purge --vault-name myKeyVault --name myRSAKey
+
+# Backup key
+az keyvault key backup --vault-name myKeyVault --name myRSAKey --file key-backup.json
+
+# Restore key
+az keyvault key restore --vault-name myKeyVault --file key-backup.json
+
+# 8. CERTIFICATE MANAGEMENT
+# Create self-signed certificate
+az keyvault certificate create \
+  --vault-name myKeyVault \
+  --name myCertificate \
+  --policy "$(az keyvault certificate get-default-policy)"
+
+# Create certificate with custom policy
+az keyvault certificate create \
+  --vault-name myKeyVault \
+  --name myCustomCertificate \
+  --policy '{
+    "issuerParameters": {
+      "name": "Self"
+    },
+    "keyProperties": {
+      "exportable": true,
+      "keySize": 2048,
+      "keyType": "RSA",
+      "reuseKey": false
+    },
+    "secretProperties": {
+      "contentType": "application/x-pkcs12"
+    },
+    "x509CertificateProperties": {
+      "subject": "CN=mydomain.com",
+      "validityInMonths": 12
+    }
+  }'
+
+# Import certificate
+az keyvault certificate import \
+  --vault-name myKeyVault \
+  --name myImportedCertificate \
+  --file certificate.pfx \
+  --password "certificatePassword"
+
+# List certificates
+az keyvault certificate list --vault-name myKeyVault --output table
+
+# Show certificate details
+az keyvault certificate show --vault-name myKeyVault --name myCertificate
+
+# Download certificate
+az keyvault certificate download \
+  --vault-name myKeyVault \
+  --name myCertificate \
+  --file certificate.crt
+
+# Delete certificate
+az keyvault certificate delete --vault-name myKeyVault --name myCertificate
+
+# Recover deleted certificate
+az keyvault certificate recover --vault-name myKeyVault --name myCertificate
+
+# Purge deleted certificate
+az keyvault certificate purge --vault-name myKeyVault --name myCertificate
+
+# 9. NETWORK ACCESS RULES
+# Add IP address rule
+az keyvault network-rule add \
+  --name myKeyVault \
+  --ip-address 203.0.113.1
+
+# Add IP address range rule
+az keyvault network-rule add \
+  --name myKeyVault \
+  --ip-address 203.0.113.0/24
+
+# Add virtual network rule
+az keyvault network-rule add \
+  --name myKeyVault \
+  --vnet-name myVNet \
+  --subnet mySubnet \
+  --resource-group myResourceGroup
+
+# List network rules
+az keyvault network-rule list --name myKeyVault
+
+# Remove IP address rule
+az keyvault network-rule remove \
+  --name myKeyVault \
+  --ip-address 203.0.113.1
+
+# Update default action
+az keyvault update \
+  --name myKeyVault \
+  --default-action Allow
+
+# 10. MONITORING AND LOGGING
+# Enable logging (requires storage account)
+az monitor diagnostic-settings create \
+  --name myKeyVaultDiagnostics \
+  --resource /subscriptions/subscription-id/resourceGroups/myResourceGroup/providers/Microsoft.KeyVault/vaults/myKeyVault \
+  --storage-account mystorageaccount \
+  --logs '[{"category": "AuditEvent", "enabled": true, "retentionPolicy": {"enabled": true, "days": 30}}]'
+
+# 11. BACKUP AND RESTORE
+# Backup entire key vault (requires scripting)
+az keyvault secret list --vault-name myKeyVault --query "[].name" -o tsv | \
+  while read secret; do
+    az keyvault secret backup --vault-name myKeyVault --name "$secret" --file "${secret}-backup.json"
+  done
+
+# 12. USEFUL QUERIES AND FILTERS
+# Get key vault URI
+az keyvault show \
+  --name myKeyVault \
+  --resource-group myResourceGroup \
+  --query "properties.vaultUri" \
+  --output tsv
+
+# List key vaults with soft delete enabled
+az keyvault list --query "[?properties.enableSoftDelete==\`true\`]" --output table
+
+# Get secret versions
+az keyvault secret list-versions --vault-name myKeyVault --name mySecret --output table
+
+# Search for secrets by name pattern
+az keyvault secret list --vault-name myKeyVault --query "[?contains(name, 'database')]" --output table
+
+# 13. CLEANUP
+# Delete key vault (soft delete)
+az keyvault delete --name myKeyVault --resource-group myResourceGroup
+
+# Purge key vault (permanent deletion)
+az keyvault purge --name myKeyVault --location "East US"
+
+# Delete resource group (deletes all resources within it)
+az group delete --name myResourceGroup --yes --no-wait
+
+# PowerShell Commands for Azure Key Vault
+
+# 1. LOGIN AND SETUP
+# Connect to Azure
+Connect-AzAccount
+
+# Set subscription context
+Set-AzContext -SubscriptionId "your-subscription-id"
+
+# Get available subscriptions
+Get-AzSubscription
+
+# 2. RESOURCE GROUP OPERATIONS
+# Create resource group
+New-AzResourceGroup -Name "myResourceGroup" -Location "East US"
+
+# Get resource groups
+Get-AzResourceGroup
+
+# 3. KEY VAULT CREATION
+# Create Key Vault with basic settings
+New-AzKeyVault -Name "myKeyVault" `
+  -ResourceGroupName "myResourceGroup" `
+  -Location "East US"
+
+# Create Key Vault with advanced settings
+New-AzKeyVault -Name "myPremiumKeyVault" `
+  -ResourceGroupName "myResourceGroup" `
+  -Location "East US" `
+  -Sku "Premium" `
+  -EnabledForDeployment `
+  -EnabledForDiskEncryption `
+  -EnabledForTemplateDeployment `
+  -EnableSoftDelete `
+  -SoftDeleteRetentionInDays 90 `
+  -EnablePurgeProtection
+
+# 4. KEY VAULT MANAGEMENT
+# Get all key vaults
+Get-AzKeyVault
+
+# Get key vault by name
+Get-AzKeyVault -VaultName "myKeyVault" -ResourceGroupName "myResourceGroup"
+
+# Update key vault
+Update-AzKeyVault -VaultName "myKeyVault" `
+  -ResourceGroupName "myResourceGroup" `
+  -EnabledForDeployment $true `
+  -EnabledForDiskEncryption $true
+
+# Remove key vault
+Remove-AzKeyVault -VaultName "myKeyVault" -ResourceGroupName "myResourceGroup" -Force
+
+# 5. ACCESS POLICY MANAGEMENT
+# Set access policy for current user
+Set-AzKeyVaultAccessPolicy -VaultName "myKeyVault" `
+  -UserPrincipalName "user@example.com" `
+  -PermissionsToSecrets Get,List,Set,Delete `
+  -PermissionsToKeys Get,List,Create,Delete `
+  -PermissionsToCertificates Get,List,Create,Delete
+
+# Set access policy for service principal
+Set-AzKeyVaultAccessPolicy -VaultName "myKeyVault" `
+  -ServicePrincipalName "http://myapp" `
+  -PermissionsToSecrets Get,List `
+  -PermissionsToKeys Get,List
+
+# Remove access policy
+Remove-AzKeyVaultAccessPolicy -VaultName "myKeyVault" -UserPrincipalName "user@example.com"
+
+# 6. SECRET MANAGEMENT
+# Create secret
+Set-AzKeyVaultSecret -VaultName "myKeyVault" `
+  -Name "mySecret" `
+  -SecretValue (ConvertTo-SecureString "MySecretValue" -AsPlainText -Force)
+
+# Get secret
+Get-AzKeyVaultSecret -VaultName "myKeyVault" -Name "mySecret"
+
+# Get secret value
+$secret = Get-AzKeyVaultSecret -VaultName "myKeyVault" -Name "mySecret"
+$secret.SecretValue | ConvertFrom-SecureString -AsPlainText
+
+# List secrets
+Get-AzKeyVaultSecret -VaultName "myKeyVault"
+
+# Remove secret
+Remove-AzKeyVaultSecret -VaultName "myKeyVault" -Name "mySecret" -Force
+
+# Backup secret
+Backup-AzKeyVaultSecret -VaultName "myKeyVault" -Name "mySecret" -OutputFile "secret-backup.json"
+
+# Restore secret
+Restore-AzKeyVaultSecret -VaultName "myKeyVault" -InputFile "secret-backup.json"
+
+# 7. KEY MANAGEMENT
+# Create RSA key
+Add-AzKeyVaultKey -VaultName "myKeyVault" `
+  -Name "myRSAKey" `
+  -Destination "Software" `
+  -KeyType "RSA" `
+  -Size 2048
+
+# Get key
+Get-AzKeyVaultKey -VaultName "myKeyVault" -Name "myRSAKey"
+
+# List keys
+Get-AzKeyVaultKey -VaultName "myKeyVault"
+
+# Remove key
+Remove-AzKeyVaultKey -VaultName "myKeyVault" -Name "myRSAKey" -Force
+
+# Backup key
+Backup-AzKeyVaultKey -VaultName "myKeyVault" -Name "myRSAKey" -OutputFile "key-backup.json"
+
+# Restore key
+Restore-AzKeyVaultKey -VaultName "myKeyVault" -InputFile "key-backup.json"
+
+# 8. CERTIFICATE MANAGEMENT
+# Create self-signed certificate
+$policy = New-AzKeyVaultCertificatePolicy -SubjectName "CN=mydomain.com" -IssuerName "Self" -ValidityInMonths 12
+Add-AzKeyVaultCertificate -VaultName "myKeyVault" -Name "myCertificate" -CertificatePolicy $policy
+
+# Import certificate
+Import-AzKeyVaultCertificate -VaultName "myKeyVault" `
+  -Name "myImportedCertificate" `
+  -FilePath "certificate.pfx" `
+  -Password (ConvertTo-SecureString "certificatePassword" -AsPlainText -Force)
+
+# Get certificate
+Get-AzKeyVaultCertificate -VaultName "myKeyVault" -Name "myCertificate"
+
+# List certificates
+Get-AzKeyVaultCertificate -VaultName "myKeyVault"
+
+# Remove certificate
+Remove-AzKeyVaultCertificate -VaultName "myKeyVault" -Name "myCertificate" -Force
+
+# 9. USEFUL POWERSHELL QUERIES
+# Get key vault URI
+$keyVault = Get-AzKeyVault -VaultName "myKeyVault" -ResourceGroupName "myResourceGroup"
+$keyVault.VaultUri
+
+# List all secrets with their values (use with caution)
+Get-AzKeyVaultSecret -VaultName "myKeyVault" | ForEach-Object {
+    $secret = Get-AzKeyVaultSecret -VaultName "myKeyVault" -Name $_.Name
+    [PSCustomObject]@{
+        Name = $_.Name
+        Value = $secret.SecretValue | ConvertFrom-SecureString -AsPlainText
+    }
+}
+
+# Bash Scripts for Azure Key Vault
+
+#!/bin/bash
+
+# 1. LOGIN AND SETUP
+echo "Logging into Azure..."
+az login
+echo "Setting subscription..."
+az account set --subscription "your-subscription-id"
+
+# 2. VARIABLES
+RESOURCE_GROUP="myResourceGroup"
+LOCATION="East US"
+KEY_VAULT="myKeyVault"
+SECRET_NAME="myDatabasePassword"
+KEY_NAME="myEncryptionKey"
+CERT_NAME="mySSLCertificate"
+
+# 3. CREATE RESOURCE GROUP
+echo "Creating resource group..."
+az group create --name $RESOURCE_GROUP --location "$LOCATION"
+
+# 4. CREATE KEY VAULT
+echo "Creating key vault..."
+az keyvault create \
+  --name $KEY_VAULT \
+  --resource-group $RESOURCE_GROUP \
+  --location "$LOCATION" \
+  --enabled-for-deployment true \
+  --enabled-for-disk-encryption true \
+  --enabled-for-template-deployment true \
+  --enable-soft-delete true \
+  --soft-delete-retention-days 90
+
+# 5. WAIT FOR KEY VAULT
+echo "Waiting for key vault to be ready..."
+sleep 30
+
+# 6. CREATE SECRET
+echo "Creating secret..."
+az keyvault secret set \
+  --vault-name $KEY_VAULT \
+  --name $SECRET_NAME \
+  --value "SuperSecretDatabasePassword123!"
+
+# 7. CREATE KEY
+echo "Creating encryption key..."
+az keyvault key create \
+  --vault-name $KEY_VAULT \
+  --name $KEY_NAME \
+  --kty RSA \
+  --size 2048
+
+# 8. CREATE SELF-SIGNED CERTIFICATE
+echo "Creating self-signed certificate..."
+az keyvault certificate create \
+  --vault-name $KEY_VAULT \
+  --name $CERT_NAME \
+  --policy "$(az keyvault certificate get-default-policy)"
+
+# 9. SET ACCESS POLICY FOR CURRENT USER
+USER_OBJECT_ID=$(az ad signed-in-user show --query objectId -o tsv)
+echo "Setting access policy for current user..."
+az keyvault set-policy \
+  --name $KEY_VAULT \
+  --object-id $USER_OBJECT_ID \
+  --secret-permissions get list set delete backup restore recover purge \
+  --key-permissions get list create delete backup restore recover purge \
+  --certificate-permissions get list create delete managecontacts getissuers listissuers setissuers deleteissuers manageissuers
+
+# 10. LIST RESOURCES
+echo "Listing secrets:"
+az keyvault secret list --vault-name $KEY_VAULT --output table
+
+echo "Listing keys:"
+az keyvault key list --vault-name $KEY_VAULT --output table
+
+echo "Listing certificates:"
+az keyvault certificate list --vault-name $KEY_VAULT --output table
+
+# 11. GET KEY VAULT INFO
+echo "Key Vault URI:"
+az keyvault show \
+  --name $KEY_VAULT \
+  --resource-group $RESOURCE_GROUP \
+  --query "properties.vaultUri" \
+  --output tsv
+
+# 12. RETRIEVE SECRET (for testing)
+echo "Retrieved secret value:"
+az keyvault secret show --vault-name $KEY_VAULT --name $SECRET_NAME --query value --output tsv
+
+echo "Key Vault setup completed!"
+
+# Function to clean up resources
+cleanup_resources() {
+    echo "Cleaning up resources..."
+    az group delete --name $RESOURCE_GROUP --yes --no-wait
+    echo "Cleanup initiated..."
+}
+
+# Uncomment the line below to clean up resources
+# cleanup_resources

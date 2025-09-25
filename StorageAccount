@@ -1,0 +1,553 @@
+# Azure Storage Account CLI Commands Reference
+
+# 1. LOGIN AND SETUP
+# Login to Azure
+az login
+
+# Set subscription (replace with your subscription ID)
+az account set --subscription "your-subscription-id"
+
+# List available subscriptions
+az account list --output table
+
+# 2. RESOURCE GROUP OPERATIONS
+# Create a resource group
+az group create --name myResourceGroup --location "East US"
+
+# List resource groups
+az group list --output table
+
+# 3. STORAGE ACCOUNT CREATION
+# Create storage account with basic settings
+az storage account create \
+  --name mystorageaccount \
+  --resource-group myResourceGroup \
+  --location "East US" \
+  --sku Standard_LRS \
+  --kind StorageV2
+
+# Create storage account with advanced settings
+az storage account create \
+  --name mypremiumstorage \
+  --resource-group myResourceGroup \
+  --location "East US" \
+  --sku Premium_LRS \
+  --kind StorageV2 \
+  --access-tier Hot \
+  --https-only true \
+  --min-tls-version TLS1_2
+
+# Create storage account with blob storage
+az storage account create \
+  --name myblobstorage \
+  --resource-group myResourceGroup \
+  --location "East US" \
+  --sku Standard_GRS \
+  --kind BlobStorage \
+  --access-tier Cool
+
+# 4. STORAGE ACCOUNT MANAGEMENT
+# List all storage accounts
+az storage account list --output table
+
+# List storage accounts in a resource group
+az storage account list --resource-group myResourceGroup --output table
+
+# Show storage account details
+az storage account show --name mystorageaccount --resource-group myResourceGroup
+
+# Get storage account keys
+az storage account keys list --account-name mystorageaccount --resource-group myResourceGroup
+
+# Regenerate storage account key
+az storage account keys renew \
+  --account-name mystorageaccount \
+  --resource-group myResourceGroup \
+  --key key1
+
+# Update storage account
+az storage account update \
+  --name mystorageaccount \
+  --resource-group myResourceGroup \
+  --sku Standard_GRS \
+  --access-tier Hot
+
+# Delete storage account
+az storage account delete --name mystorageaccount --resource-group myResourceGroup --yes
+
+# 5. BLOB STORAGE OPERATIONS
+# Create blob container
+az storage container create \
+  --name mycontainer \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# List blob containers
+az storage container list --account-name mystorageaccount --auth-mode login
+
+# Upload blob
+az storage blob upload \
+  --file myfile.txt \
+  --container-name mycontainer \
+  --name myblob.txt \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# List blobs in container
+az storage blob list \
+  --container-name mycontainer \
+  --account-name mystorageaccount \
+  --auth-mode login \
+  --output table
+
+# Download blob
+az storage blob download \
+  --container-name mycontainer \
+  --name myblob.txt \
+  --file downloaded-file.txt \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# Copy blob
+az storage blob copy start \
+  --source-container mycontainer \
+  --source-blob myblob.txt \
+  --destination-container mycontainer \
+  --destination-blob myblob-copy.txt \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# Delete blob
+az storage blob delete \
+  --container-name mycontainer \
+  --name myblob.txt \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# Delete container
+az storage container delete \
+  --name mycontainer \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# 6. FILE SHARE OPERATIONS
+# Create file share
+az storage share create \
+  --name myfileshare \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# List file shares
+az storage share list --account-name mystorageaccount --auth-mode login
+
+# Upload file to share
+az storage file upload \
+  --share-name myfileshare \
+  --source myfile.txt \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# List files in share
+az storage file list \
+  --share-name myfileshare \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# Download file from share
+az storage file download \
+  --share-name myfileshare \
+  --path myfile.txt \
+  --dest downloaded-file.txt \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# Delete file from share
+az storage file delete \
+  --share-name myfileshare \
+  --path myfile.txt \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# Delete file share
+az storage share delete \
+  --name myfileshare \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# 7. QUEUE OPERATIONS
+# Create queue
+az storage queue create \
+  --name myqueue \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# List queues
+az storage queue list --account-name mystorageaccount --auth-mode login
+
+# Put message in queue
+az storage message put \
+  --queue-name myqueue \
+  --content "Hello, World!" \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# Peek messages in queue
+az storage message peek \
+  --queue-name myqueue \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# Get message from queue
+az storage message get \
+  --queue-name myqueue \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# Delete queue
+az storage queue delete \
+  --name myqueue \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# 8. TABLE OPERATIONS
+# Create table
+az storage table create \
+  --name mytable \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# List tables
+az storage table list --account-name mystorageaccount --auth-mode login
+
+# Delete table
+az storage table delete \
+  --name mytable \
+  --account-name mystorageaccount \
+  --auth-mode login
+
+# 9. ACCESS CONTROL AND SECURITY
+# Enable secure transfer
+az storage account update \
+  --name mystorageaccount \
+  --resource-group myResourceGroup \
+  --https-only true
+
+# Configure firewall rules
+az storage account network-rule add \
+  --account-name mystorageaccount \
+  --resource-group myResourceGroup \
+  --ip-address 203.0.113.0/24
+
+# List network access rules
+az storage account network-rule list \
+  --account-name mystorageaccount \
+  --resource-group myResourceGroup
+
+# Enable blob public access
+az storage account update \
+  --name mystorageaccount \
+  --resource-group myResourceGroup \
+  --allow-blob-public-access true
+
+# 10. MONITORING AND METRICS
+# Enable logging
+az storage logging update \
+  --account-name mystorageaccount \
+  --log rwd \
+  --retention 90 \
+  --services b
+
+# Enable metrics
+az storage metrics update \
+  --account-name mystorageaccount \
+  --hour true \
+  --minute false \
+  --retention 90 \
+  --services b
+
+# 11. LIFECYCLE MANAGEMENT
+# Set lifecycle policy (requires JSON file)
+az storage account management-policy create \
+  --account-name mystorageaccount \
+  --resource-group myResourceGroup \
+  --policy @lifecycle-policy.json
+
+# 12. USEFUL QUERIES AND FILTERS
+# Get storage account connection string
+az storage account show-connection-string \
+  --name mystorageaccount \
+  --resource-group myResourceGroup \
+  --query connectionString \
+  --output tsv
+
+# List storage accounts by SKU
+az storage account list --query "[?sku.name=='Standard_LRS']" --output table
+
+# Get storage account endpoint
+az storage account show \
+  --name mystorageaccount \
+  --resource-group myResourceGroup \
+  --query "primaryEndpoints.blob" \
+  --output tsv
+
+# 13. CLEANUP
+# Delete storage account
+az storage account delete --name mystorageaccount --resource-group myResourceGroup --yes
+
+# Delete resource group (deletes all resources within it)
+az group delete --name myResourceGroup --yes --no-wait
+
+# PowerShell Commands for Azure Storage Account
+
+# 1. LOGIN AND SETUP
+# Connect to Azure
+Connect-AzAccount
+
+# Set subscription context
+Set-AzContext -SubscriptionId "your-subscription-id"
+
+# Get available subscriptions
+Get-AzSubscription
+
+# 2. RESOURCE GROUP OPERATIONS
+# Create resource group
+New-AzResourceGroup -Name "myResourceGroup" -Location "East US"
+
+# Get resource groups
+Get-AzResourceGroup
+
+# 3. STORAGE ACCOUNT CREATION
+# Create storage account with basic settings
+New-AzStorageAccount -Name "mystorageaccount" `
+  -ResourceGroupName "myResourceGroup" `
+  -Location "East US" `
+  -SkuName "Standard_LRS" `
+  -Kind "StorageV2"
+
+# Create storage account with advanced settings
+New-AzStorageAccount -Name "mypremiumstorage" `
+  -ResourceGroupName "myResourceGroup" `
+  -Location "East US" `
+  -SkuName "Premium_LRS" `
+  -Kind "StorageV2" `
+  -AccessTier "Hot" `
+  -EnableHttpsTrafficOnly $true `
+  -MinimumTlsVersion "TLS1_2"
+
+# 4. STORAGE ACCOUNT MANAGEMENT
+# Get all storage accounts
+Get-AzStorageAccount
+
+# Get storage account by name
+Get-AzStorageAccount -ResourceGroupName "myResourceGroup" -Name "mystorageaccount"
+
+# Get storage account keys
+Get-AzStorageAccountKey -ResourceGroupName "myResourceGroup" -Name "mystorageaccount"
+
+# Regenerate storage account key
+New-AzStorageAccountKey -ResourceGroupName "myResourceGroup" -Name "mystorageaccount" -KeyName "key1"
+
+# Update storage account
+Set-AzStorageAccount -ResourceGroupName "myResourceGroup" `
+  -Name "mystorageaccount" `
+  -SkuName "Standard_GRS" `
+  -AccessTier "Hot"
+
+# Remove storage account
+Remove-AzStorageAccount -ResourceGroupName "myResourceGroup" -Name "mystorageaccount" -Force
+
+# 5. BLOB STORAGE OPERATIONS
+# Get storage context
+$ctx = (Get-AzStorageAccount -ResourceGroupName "myResourceGroup" -Name "mystorageaccount").Context
+
+# Create blob container
+New-AzStorageContainer -Name "mycontainer" -Context $ctx -Permission Blob
+
+# Get blob containers
+Get-AzStorageContainer -Context $ctx
+
+# Upload blob
+Set-AzStorageBlobContent -File "myfile.txt" `
+  -Container "mycontainer" `
+  -Blob "myblob.txt" `
+  -Context $ctx
+
+# List blobs in container
+Get-AzStorageBlob -Container "mycontainer" -Context $ctx
+
+# Download blob
+Get-AzStorageBlobContent -Container "mycontainer" `
+  -Blob "myblob.txt" `
+  -Destination "downloaded-file.txt" `
+  -Context $ctx
+
+# Copy blob
+Start-AzStorageBlobCopy -SrcContainer "mycontainer" `
+  -SrcBlob "myblob.txt" `
+  -DestContainer "mycontainer" `
+  -DestBlob "myblob-copy.txt" `
+  -Context $ctx
+
+# Remove blob
+Remove-AzStorageBlob -Container "mycontainer" -Blob "myblob.txt" -Context $ctx
+
+# Remove container
+Remove-AzStorageContainer -Name "mycontainer" -Context $ctx -Force
+
+# 6. FILE SHARE OPERATIONS
+# Create file share
+New-AzStorageShare -Name "myfileshare" -Context $ctx
+
+# Get file shares
+Get-AzStorageShare -Context $ctx
+
+# Upload file to share
+Set-AzStorageFileContent -ShareName "myfileshare" `
+  -Source "myfile.txt" `
+  -Path "myfile.txt" `
+  -Context $ctx
+
+# Download file from share
+Get-AzStorageFileContent -ShareName "myfileshare" `
+  -Path "myfile.txt" `
+  -Destination "downloaded-file.txt" `
+  -Context $ctx
+
+# Remove file from share
+Remove-AzStorageFile -ShareName "myfileshare" -Path "myfile.txt" -Context $ctx
+
+# Remove file share
+Remove-AzStorageShare -Name "myfileshare" -Context $ctx -Force
+
+# 7. QUEUE OPERATIONS
+# Create queue
+New-AzStorageQueue -Name "myqueue" -Context $ctx
+
+# Get queues
+Get-AzStorageQueue -Context $ctx
+
+# Remove queue
+Remove-AzStorageQueue -Name "myqueue" -Context $ctx -Force
+
+# 8. TABLE OPERATIONS
+# Create table
+New-AzStorageTable -Name "mytable" -Context $ctx
+
+# Get tables
+Get-AzStorageTable -Context $ctx
+
+# Remove table
+Remove-AzStorageTable -Name "mytable" -Context $ctx -Force
+
+# 9. USEFUL POWERSHELL QUERIES
+# Get storage account connection string
+$storageAccount = Get-AzStorageAccount -ResourceGroupName "myResourceGroup" -Name "mystorageaccount"
+$storageAccount.Context.ConnectionString
+
+# Get storage account endpoint
+$storageAccount.PrimaryEndpoints.Blob
+
+# Bash Scripts for Azure Storage Account
+
+#!/bin/bash
+
+# 1. LOGIN AND SETUP
+echo "Logging into Azure..."
+az login
+echo "Setting subscription..."
+az account set --subscription "your-subscription-id"
+
+# 2. VARIABLES
+RESOURCE_GROUP="myResourceGroup"
+LOCATION="East US"
+STORAGE_ACCOUNT="mystorageaccount"
+CONTAINER_NAME="mycontainer"
+FILE_SHARE="myfileshare"
+
+# 3. CREATE RESOURCE GROUP
+echo "Creating resource group..."
+az group create --name $RESOURCE_GROUP --location "$LOCATION"
+
+# 4. CREATE STORAGE ACCOUNT
+echo "Creating storage account..."
+az storage account create \
+  --name $STORAGE_ACCOUNT \
+  --resource-group $RESOURCE_GROUP \
+  --location "$LOCATION" \
+  --sku Standard_LRS \
+  --kind StorageV2 \
+  --access-tier Hot \
+  --https-only true
+
+# 5. WAIT FOR STORAGE ACCOUNT
+echo "Waiting for storage account to be ready..."
+sleep 30
+
+# 6. CREATE BLOB CONTAINER
+echo "Creating blob container..."
+az storage container create \
+  --name $CONTAINER_NAME \
+  --account-name $STORAGE_ACCOUNT \
+  --auth-mode login \
+  --public-access container
+
+# 7. CREATE FILE SHARE
+echo "Creating file share..."
+az storage share create \
+  --name $FILE_SHARE \
+  --account-name $STORAGE_ACCOUNT \
+  --auth-mode login \
+  --quota 1024
+
+# 8. UPLOAD SAMPLE FILE (if exists)
+if [ -f "sample.txt" ]; then
+    echo "Uploading sample file to blob storage..."
+    az storage blob upload \
+      --file sample.txt \
+      --container-name $CONTAINER_NAME \
+      --name sample-blob.txt \
+      --account-name $STORAGE_ACCOUNT \
+      --auth-mode login
+    
+    echo "Uploading sample file to file share..."
+    az storage file upload \
+      --share-name $FILE_SHARE \
+      --source sample.txt \
+      --path sample-file.txt \
+      --account-name $STORAGE_ACCOUNT \
+      --auth-mode login
+fi
+
+# 9. LIST RESOURCES
+echo "Listing containers:"
+az storage container list --account-name $STORAGE_ACCOUNT --auth-mode login --output table
+
+echo "Listing file shares:"
+az storage share list --account-name $STORAGE_ACCOUNT --auth-mode login --output table
+
+# 10. GET STORAGE ACCOUNT INFO
+echo "Storage Account Connection String:"
+az storage account show-connection-string \
+  --name $STORAGE_ACCOUNT \
+  --resource-group $RESOURCE_GROUP \
+  --query connectionString \
+  --output tsv
+
+echo "Storage Account Blob Endpoint:"
+az storage account show \
+  --name $STORAGE_ACCOUNT \
+  --resource-group $RESOURCE_GROUP \
+  --query "primaryEndpoints.blob" \
+  --output tsv
+
+echo "Storage Account deployment completed!"
+
+# Function to clean up resources
+cleanup_resources() {
+    echo "Cleaning up resources..."
+    az group delete --name $RESOURCE_GROUP --yes --no-wait
+    echo "Cleanup initiated..."
+}
+
+# Uncomment the line below to clean up resources
+# cleanup_resources
